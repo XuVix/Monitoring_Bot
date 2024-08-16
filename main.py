@@ -59,7 +59,7 @@ def send_network_usage():
             f"ULoad : `{dt_sent_str}`  \n"
             f"DLoad : `{dt_recv_str}`  \n"
             f"➖➖➖➖➖➖➖➖➖➖\n"
-            f"`[{DELAY} min]`  `[{PERCENTAGE}%]`  `[{L_STATUS}]`\n"
+            f"`[{DELAY} min]` `[{L_STATUS}]`\n"
         )
         bot.send_message(CHAT_ID, message, parse_mode=ParseMode.MARKDOWN)
 
