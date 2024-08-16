@@ -3,13 +3,9 @@ a Simple Bot to Monitoring Data Usage
 
 # install
  ```
-curl -sL https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/install.sh | sudo bash -s -- <YourBotToken> <YourChatID> <YourServerName>
+bash <(curl -s https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/install.sh) <YourBotToken> <YourChatID>
  ```
-# Full install
- ```
-curl -sL https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/install.sh | sudo bash -s -- <YourBotToken> <YourChatID> <YourServerName> <Delay> <Log_Status> <Percentage>
 
- ```
 # status
  ```
 sudo systemctl status Monitoring_Bot.service
