@@ -41,6 +41,7 @@ def send_network_usage():
     dt_recv_str = format_size(dt_recv)
 
     message = (
+        f"‼️ #Warning\n"
         f"`{SERVER_NAME}`\n"
         f"➖➖➖➖➖➖➖➖➖➖\n"
         f"ULoad : `{dt_sent_str}`  `{sent_diff:.2f}%`\n"
@@ -50,8 +51,16 @@ def send_network_usage():
     )
     
     if LOG_STATUS in [2, 3] and (sent_diff <= PERCENTAGE or recv_diff <= PERCENTAGE):
-        bot.send_message(CHAT_ID, f"‼️ #Warning\n\n{message}", parse_mode=ParseMode.MARKDOWN)
+        bot.send_message(CHAT_ID, message, parse_mode=ParseMode.MARKDOWN)
     elif LOG_STATUS in [1, 3]:
+        message = (
+            f"`{SERVER_NAME}`\n"
+            f"➖➖➖➖➖➖➖➖➖➖\n"
+            f"ULoad : `{dt_sent_str}`  \n"
+            f"DLoad : `{dt_recv_str}`  \n"
+            f"➖➖➖➖➖➖➖➖➖➖\n"
+            f"`[{DELAY} min]`  `[{PERCENTAGE}%]`  `[{L_STATUS}]`\n"
+        )
         bot.send_message(CHAT_ID, message, parse_mode=ParseMode.MARKDOWN)
 
 def main():
