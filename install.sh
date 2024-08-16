@@ -1,10 +1,5 @@
 #!/bin/bash
 
-usage() {
-    echo "Usage: $0 BOT_TOKEN CHAT_ID [SERVER_NAME] [DELAY] [LOG_STATUS] [PERCENTAGE]"
-    exit 1
-}
-
 if [[ $EUID -ne 0 ]]; then
     clear
     echo "You should run this script with root!"
@@ -13,7 +8,7 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [ "$#" -lt 2 ]; then
-    usage
+    echo "Usage: $0 BOT_TOKEN CHAT_ID [SERVER_NAME] [DELAY] [LOG_STATUS] [PERCENTAGE]"
 fi
 
 BOT_TOKEN=$1
