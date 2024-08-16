@@ -8,21 +8,54 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 if [ "$#" -lt 2 ]; then
-    echo "Usage: $0 BOT_TOKEN CHAT_ID [SERVER_NAME] [DELAY] [LOG_STATUS] [PERCENTAGE]"
+    echo "Usage: $0 BOT_TOKEN CHAT_ID"
+    exit 1
 fi
 
 BOT_TOKEN=$1
 CHAT_ID=$2
-SERVER_NAME=${3:-⚡️XuVix}
 
-DELAY=${4:-30}
-LOG_STATUS=${5:-3}
-PERCENTAGE=${6:--50}
+clear
+echo "---------------------------------------------------"
+read -p "Enter SERVER_NAME [default: ⚡️XuVix]: " SERVER_NAME
+SERVER_NAME=${SERVER_NAME:-⚡️XuVix}
 
-read -p "Enter DELAY (in minutes):" DELAY
-read -p "Enter LOG_STATUS (1=Log, 2=Warn, 3=Log-Warn):" LOG_STATUS
-read -p "Enter PERCENTAGE (-100 to 0):" PERCENTAGE
+echo "---------------------------------------------------"
+while true; do
+    read -p "Enter DELAY (in minutes) [default: 30, range: 1-1440]: " DELAY
+    DELAY=${DELAY:-30}
+    if [[ $DELAY =~ ^[0-9]+$ ]] && ((DELAY >= 1 && DELAY <= 1440)); then
+        break
+    else
+        echo "Invalid input. Please enter a valid DELAY between 1 and 1440 minutes."
+    fi
+done
 
+echo "---------------------------------------------------"
+while true; do
+    read -p "Enter LOG_STATUS (1=Log, 2=Warn, 3=Log-Warn) [default: 3]: " LOG_STATUS
+    LOG_STATUS=${LOG_STATUS:-3}
+    if [[ $LOG_STATUS =~ ^[1-3]$ ]]; then
+        break
+    else
+        echo "Invalid input. Please enter 1 for Log, 2 for Warn, or 3 for Log-Warn."
+    fi
+done
+
+echo "---------------------------------------------------"
+if [[ $LOG_STATUS -ne 1 ]]; then
+    while true; do
+        read -p "Enter PERCENTAGE (-100 to 0) [default: -50]: " PERCENTAGE
+        PERCENTAGE=${PERCENTAGE:--50}
+        if [[ $PERCENTAGE =~ ^-?[0-9]+$ ]] && ((PERCENTAGE >= -100 && PERCENTAGE <= 0)); then
+            break
+        else
+            echo "Invalid input. Please enter a valid PERCENTAGE between -100 and 0."
+        fi
+    done
+else
+    PERCENTAGE=0
+fi
 
 SERVICE_NAME="Monitoring_Bot.service"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
@@ -81,7 +114,6 @@ PERCENTAGE = ${PERCENTAGE}
 EOF
 }
 
-
 setup_systemd_service() {
     echo "Creating systemd service file..."
     cat <<EOF | sudo tee $SERVICE_PATH > /dev/null
@@ -105,13 +137,11 @@ EOF
     sudo systemctl start $SERVICE_NAME
 }
 
-
 cleanup_old_installation
 install_dependencies
 setup_python_environment
 download_script_and_create_config
 setup_systemd_service
-
 
 echo "Telegram Monitoring Bot is now installed and running for ${SERVER_NAME} "
 echo "DELAY=${DELAY} min, LOG_STATUS=${LOG_STATUS}, PERCENTAGE=${PERCENTAGE}. "
