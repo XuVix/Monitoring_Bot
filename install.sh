@@ -19,14 +19,10 @@ DELAY=${4:-30}
 LOG_STATUS=${5:-3}
 PERCENTAGE=${6:--50}
 
-get_Variable (){
-    echo "Enter DELAY (in minutes):"
-    read DELAY
-    echo "Enter LOG_STATUS (1=Log, 2=Warn, 3=Log-Warn):"
-    read LOG_STATUS
-    echo "Enter PERCENTAGE (-100 to 0):"
-    read PERCENTAGE
-}
+read -p "Enter DELAY (in minutes):" DELAY
+read -p "Enter LOG_STATUS (1=Log, 2=Warn, 3=Log-Warn):" LOG_STATUS
+read -p "Enter PERCENTAGE (-100 to 0):" PERCENTAGE
+
 
 SERVICE_NAME="Monitoring_Bot.service"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
