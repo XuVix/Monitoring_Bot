@@ -1,11 +1,47 @@
 import psutil
 import time
+import re
 import schedule
 from telegram import Bot, ParseMode
-from config import BOT_TOKEN, CHAT_ID, SERVER_NAME, DELAY, PERCENTAGE, LOG_STATUS
+from telegram.ext.updater import Request
+from config import BOT_TOKEN, CHAT_ID, SERVER_NAME, DELAY, PERCENTAGE, LOG_STATUS, HTTP_PROXY
 
 lsdt_sent, lsdt_recv = 0, 0
-bot = Bot(token=BOT_TOKEN)
+
+def parse_proxy_url(proxy_url: str) -> tuple[str, str | None, str | None]:
+    """
+    Regex pattern to match and capture the username, password, and the rest of the proxy URL
+    Args:
+        proxy_url (str): pass raw proxy url and process it
+
+    Returns:
+        tuple[str, str | None, str | None]
+    """
+    pattern = re.compile(r'http://(?:(?P<username>[^:]+):(?P<password>[^@]+)@)?(?P<proxy_url>.*)')
+    match = pattern.match(proxy_url)
+
+    if match:
+        proxy_details = match.groupdict()
+        return proxy_details['proxy_url'], proxy_details.get('username'), proxy_details.get('password')
+    return proxy_url, None, None
+
+# added HTTP Proxy support
+if HTTP_PROXY:
+    proxy_url, PROXY_USERNAME, PROXY_PASSWORD = parse_proxy_url(HTTP_PROXY)
+    
+    if PROXY_USERNAME and PROXY_PASSWORD:
+        request = Request(proxy_url=f"http://{proxy_url}",
+                          urllib3_proxy_kwargs={
+                              'username': PROXY_USERNAME,
+                              'password': PROXY_PASSWORD,
+                          })
+    else:
+        request = Request(proxy_url=HTTP_PROXY)
+
+    bot = Bot(token=BOT_TOKEN, request=request)
+else:
+    bot = Bot(token=BOT_TOKEN)
+
 L_STATUS = "---"
 if LOG_STATUS == 1:
     L_STATUS = "Log"
