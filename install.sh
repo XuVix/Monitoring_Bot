@@ -96,7 +96,7 @@ setup_python_environment() {
     echo "Upgrading pip and installing Python packages..."
     pip install --upgrade pip
     pip uninstall -y python-telegram-bot || true
-    pip install "python-telegram-bot==13.7" "psutil>=5.9.0" "schedule>=1.1.0"
+    pip install "python-telegram-bot==13.7" "psutil>=5.9.0" "schedule>=1.1.0" "urllib3"
 }
 
 download_script_and_create_config() {
