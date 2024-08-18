@@ -34,38 +34,22 @@ menu() {
         clear
         case $option in
             1) start_install_bot ;;
-            2) 
-                if check_installation; then
-                    status_bot
-                else
-                    error "Bot is not installed!"
-                fi 
-                ;;
-            3) 
-                if check_installation; then
-                    restart_bot
-                else
-                    error "Bot is not installed!"
-                fi 
-                ;;
-            4) 
-                if check_installation; then
-                    start_uninstall_bot
-                else
-                    error "Bot is not installed!"
-                fi 
-                ;;
-            5) 
-                if check_installation; then
-                    show_logs
-                else
-                    error "Bot is not installed!"
-                fi 
-                ;;
+            2) run_if_installed status_bot ;;
+            3) run_if_installed restart_bot ;;
+            4) run_if_installed start_uninstall_bot ;;
+            5) run_if_installed show_logs ;;
             0) error "Thank you for using @XuVix script. Goodbye!" && exit 0 ;;
             *) error "Invalid option, Please select a valid option!" ;;
         esac
     done
+}
+
+run_if_installed() {
+    if check_installation; then
+        "$1"
+    else
+        error "Bot is not installed!"
+    fi
 }
 
 start_install_bot() {
@@ -127,7 +111,6 @@ check_needs() {
 }
 
 get_bot_info() {
-    print "To use Telegram, you need to provide a bot token and a chat ID.\n"
     while true; do
         input "Enter the bot token: " bot_token
         if [[ -z "$bot_token" ]]; then
