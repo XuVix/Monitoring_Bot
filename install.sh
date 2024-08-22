@@ -63,7 +63,7 @@ while true; do
 
     # Check if the HTTP_PROXY is empty
     if [ -z "$HTTP_PROXY" ]; then
-        HTTP_PROXY=null
+        HTTP_PROXY=""
         break
     fi
 
@@ -132,7 +132,7 @@ SERVER_NAME = "${SERVER_NAME}"
 DELAY = ${DELAY}
 LOG_STATUS = ${LOG_STATUS}
 PERCENTAGE = ${PERCENTAGE}
-HTTP_PROXY = ${HTTP_PROXY}
+HTTP_PROXY = "${HTTP_PROXY}"
 EOF
 }
 
