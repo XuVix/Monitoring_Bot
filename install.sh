@@ -42,8 +42,8 @@ while true; do
     fi
 done
 
-echo "---------------------------------------------------"
 if [[ $LOG_STATUS -ne 1 ]]; then
+    echo "---------------------------------------------------"
     while true; do
         read -p "Enter PERCENTAGE (-100 to 0) [default: -50]: " PERCENTAGE
         PERCENTAGE=${PERCENTAGE:--50}
