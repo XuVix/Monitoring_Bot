@@ -77,7 +77,7 @@ while true; do
         echo "Please try again or leave blank to set to 'null'."
     fi
 done
-
+echo "---------------------------------------------------"
 SERVICE_NAME="Monitoring_Bot.service"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 INSTALL_DIR="/opt/Monitoring_Bot"
