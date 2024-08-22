@@ -57,6 +57,27 @@ else
     PERCENTAGE=0
 fi
 
+echo "---------------------------------------------------"
+while true; do
+    read -p "Enter HTTP_PROXY (leave blank if not required): " HTTP_PROXY
+
+    # Check if the HTTP_PROXY is empty
+    if [ -z "$HTTP_PROXY" ]; then
+        HTTP_PROXY=null
+        break
+    fi
+
+    # Validate the format of the HTTP_PROXY
+    if [[ "$HTTP_PROXY" =~ ^http://([a-zA-Z0-9]+:[a-zA-Z0-9]+@)?([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+/?$ ]]; then
+        break
+    else
+        echo "Invalid HTTP_PROXY format. Please use one of the following formats:"
+        echo "1. http://user:pass@ip:port"
+        echo "2. http://ip:port"
+        echo "Please try again or leave blank to set to 'null'."
+    fi
+done
+
 SERVICE_NAME="Monitoring_Bot.service"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 INSTALL_DIR="/opt/Monitoring_Bot"
@@ -111,6 +132,7 @@ SERVER_NAME = "${SERVER_NAME}"
 DELAY = ${DELAY}
 LOG_STATUS = ${LOG_STATUS}
 PERCENTAGE = ${PERCENTAGE}
+HTTP_PROXY = "${HTTP_PROXY}"
 EOF
 }
 
