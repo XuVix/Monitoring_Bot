@@ -1,40 +1,98 @@
-# Monitoring_Bot
-a Simple Bot to Monitoring Data Usage
+# 🛰 Monitoring_Bot
 
-# install
- ```
-bash <(curl -s https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/install.sh) <YourBotToken> <YourChatID>
- ```
+A simple yet powerful **Telegram-based server monitoring bot** that reports **network usage** (upload/download) periodically or when a drop in activity is detected.
 
-# status
- ```
-sudo systemctl status Monitoring_Bot.service
- ```
-# Log
- ```
-sudo journalctl -u Monitoring_Bot.service -f
- ```
-# Stop and disable the service
- ```
-sudo systemctl stop Monitoring_Bot.service
+> ⚡️ Made by [@XuVixC](https://t.me/XuVixC)
 
-sudo systemctl disable Monitoring_Bot.service
+---
 
-sudo rm /etc/systemd/system/Monitoring_Bot.service
+## 📌 Features
 
-sudo systemctl daemon-reload
+- Custom monitoring interval (1–1440 minutes)
+- Traffic drop alert (based on percentage)
+- Log mode, Warn mode, or both
+- HTTP Proxy support (optional)
+- Auto setup with `systemd`
+- Written in Python using:
+  - `python-telegram-bot`
+  - `psutil`
+  - `schedule`
 
- ```
+---
 
-# Remove the installation directory
- ```
-sudo rm -rf /opt/Monitoring_Bot
+## 🚀 Installation
 
- ```
+```bash
+bash <(curl -sSL https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/install.sh)
+```
 
+You'll be asked to enter:
+- Your bot token
+- Telegram chat ID
+- Server name
+- Delay in minutes
+- Log mode:
+  - `1 = Log only`
+  - `2 = Warn only`
+  - `3 = Log + Warn`
+- Drop percentage (for warn mode)
+- Optional HTTP proxy (e.g. `http://ip:port`)
 
-<p align="center">
-  <a target="_blank" href="https://t.me/XuvixC">
-    <img alt="Telegram Badge" src="https://img.shields.io/badge/XuVixChanel-Telegramlink?style=1&logo=telegram&logoColor=white&color=blue&link=https%3A%2F%2Ft.me%2FXuVix&link=https%3A%2F%2Ft.me%2FXuVix">
-  </a>
-  
+---
+
+## 🛠 Menu Options
+
+You can re-run the installer to:
+- Reinstall or update
+- Check status
+- Restart the bot
+- Uninstall the bot
+- View live logs
+
+---
+
+## ⚙️ Configuration Example
+
+Located at `/opt/Monitoring_Bot/config.py`:
+
+```python
+BOT_TOKEN = "123456:ABCDEF..."
+CHAT_ID = "123456789"
+SERVER_NAME = "⚡️XuVix"
+DELAY = 30
+LOG_STATUS = 3
+PERCENTAGE = -50
+HTTP_PROXY = "http://127.0.0.1:1080"
+```
+
+---
+
+## 📦 Dependencies
+
+Installer handles everything:
+- `python3`, `pip`, `venv`, `curl`
+- Python packages:
+  - `python-telegram-bot==13.7`
+  - `psutil`
+  - `schedule`
+  - `urllib3==1.26.15`
+
+---
+
+## 🧰 Requirements
+
+- Debian/Ubuntu with `apt`
+- Python 3.6+
+- Root access (`sudo`)
+
+---
+
+## 📝 License
+
+MIT © [XuVix](https://github.com/XuVix)
+
+---
+
+## 🙋‍♂️ Support
+
+Telegram: [@XuVixC](https://t.me/XuVixC)
