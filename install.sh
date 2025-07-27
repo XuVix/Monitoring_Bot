@@ -14,9 +14,9 @@ INSTALL_DIR="/opt/Monitoring_Bot"
 menu() {
     while true; do
         clear
-        print "——————————————————————————————————————"
+        print "———————————————————————————————————————"
         print "\t@XuVixC MonitoringBot [0.0.4]"
-        print "——————————————————————————————————————"
+        print "———————————————————————————————————————"
         if check_installation; then
             print "1) Reinstall"
             print "2) Status"
