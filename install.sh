@@ -15,7 +15,7 @@ menu() {
     while true; do
         clear
         print "——————————————————————————————————————"
-        print "\t@XuVixC MonitoringBot [0.1.0]"
+        print "\t@XuVixC MonitoringBot [0.0.4]"
         print "——————————————————————————————————————"
         if check_installation; then
             print "1) Reinstall"
