@@ -122,7 +122,7 @@ get_bot_info() {
             error "Invalid chat ID format!"
         else
             log "Checking Telegram bot..."
-            response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://api.telegram.org/bot$bot_token/sendMessage" -d chat_id="$chat_id" -d text="Hi Bro! (test bot)")
+            response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://api.telegram.org/bot$bot_token/sendMessage" -d chat_id="$chat_id" -d text="Monitoring Bot is active! ✅\nDeveloper: @XuVixC")
             if [[ "$response" -ne 200 ]]; then
                 error "Invalid bot token or chat ID, or Telegram API error!"
             else
