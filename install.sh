@@ -50,6 +50,7 @@ run_if_installed() {
 
 start_install_bot() {
     check_needs
+    clear
     get_bot_info
     get_server_name
     get_monotoring_delay
