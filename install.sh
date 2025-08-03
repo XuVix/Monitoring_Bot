@@ -351,6 +351,7 @@ get_bot_info() {
             response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://api.telegram.org/bot$bot_token/sendMessage" -d chat_id="$chat_id" -d text="$text")
             if [[ "$response" -ne 200 ]]; then
                 error "Invalid bot token or chat ID, or Telegram API error!"
+		break
             else
                 success "Bot token and chat ID are valid."
                 break
