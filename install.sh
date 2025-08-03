@@ -8,21 +8,24 @@ log() { echo -e "${green}! $1${reset}"; }
 input() { read -p "$(echo -e "${orange}▶ $1${reset}")" "$2"; }
 confirm() { read -p "$(echo -e "\n${pink}Press any key to continue...${reset}")"; }
 trap 'echo -e "\n"; error "Script interrupted! Contact: @XuVixC"; exit 1' SIGINT
+
 SERVICE_NAME="Monitoring_Bot.service"
 SERVICE_PATH="/etc/systemd/system/$SERVICE_NAME"
 INSTALL_DIR="/opt/Monitoring_Bot"
+
 menu() {
     while true; do
         clear
         print "———————————————————————————————————————"
-        print "\t@XuVixC MonitoringBot [0.0.4]"
+        print "\t@XuVixC MonitoringBot [0.0.8]"
         print "———————————————————————————————————————"
         if check_installation; then
             print "1) Reinstall"
-            print "2) Status"
-            print "3) Restart"
-            print "4) Uninstall"
-            print "5) Show logs"
+			print "2) Edit config"
+            print "3) Status"
+            print "4) Restart"
+            print "5) Uninstall"
+            print "6) Show logs"
         else
             print "1) Install"
         fi
@@ -32,10 +35,11 @@ menu() {
         clear
         case $option in
             1) start_install_bot ;;
-            2) run_if_installed status_bot ;;
-            3) run_if_installed restart_bot ;;
-            4) run_if_installed start_uninstall_bot ;;
-            5) run_if_installed show_logs ;;
+			2) run_if_installed edit_config ;;
+            3) run_if_installed status_bot ;;
+            4) run_if_installed restart_bot ;;
+            5) run_if_installed start_uninstall_bot ;;
+            6) run_if_installed show_logs ;;
             0) error "Thank you for using @XuVix script. Goodbye!" && exit 0 ;;
             *) error "Invalid option, Please select a valid option!" ;;
         esac
@@ -57,19 +61,235 @@ start_install_bot() {
     get_server_name
     get_monotoring_delay
     get_log_status
+    get_port_monitoring
+    get_sys_monitoring
+    get_cloudflare_worker_url
     get_proxy
     setup_bot
 }
+
+edit_config() {
+    if [ ! -f "$INSTALL_DIR/config.py" ]; then
+        error "Config file not found!"
+        return 1
+    fi
+	
+    BOT_TOKEN=$(grep '^BOT_TOKEN' $INSTALL_DIR/config.py | cut -d'"' -f2)
+    CHAT_ID=$(grep '^CHAT_ID' $INSTALL_DIR/config.py | cut -d'=' -f2 | xargs)
+    SERVER_NAME=$(grep '^SERVER_NAME' $INSTALL_DIR/config.py | cut -d'"' -f2)
+    DELAY=$(grep '^DELAY' $INSTALL_DIR/config.py | cut -d'=' -f2 | xargs)
+    LOG_STATUS=$(grep '^LOG_STATUS' $INSTALL_DIR/config.py | cut -d'=' -f2 | xargs)
+    PERCENTAGE=$(grep '^PERCENTAGE' $INSTALL_DIR/config.py | cut -d'=' -f2 | xargs)
+    PORT_MONITORING=$(grep '^PORT_MONITORING' $INSTALL_DIR/config.py | cut -d'=' -f2 | xargs)
+    SYS_MONITORING=$(grep '^SYS_MONITORING' $INSTALL_DIR/config.py | cut -d'=' -f2 | xargs)
+    CLOUDFLARE_WORKER_URL=$(grep '^CLOUDFLARE_WORKER_URL' $INSTALL_DIR/config.py | cut -d'"' -f2)
+    HTTP_PROXY=$(grep '^HTTP_PROXY' $INSTALL_DIR/config.py | cut -d'"' -f2)
+
+    while true; do
+        clear
+        echo -e "${cyan}Edit Config Menu:${reset}"
+        echo -e "${orange}1)${reset} BOT_TOKEN: ${green}$BOT_TOKEN${reset}"
+        echo -e "${orange}2)${reset} CHAT_ID: ${green}$CHAT_ID${reset}"
+        echo -e "${orange}3)${reset} SERVER_NAME: ${green}$SERVER_NAME${reset}"
+        echo -e "${orange}4)${reset} DELAY: ${green}$DELAY${reset}"
+        echo -e "${orange}5)${reset} LOG_STATUS: ${green}$LOG_STATUS${reset}"
+        echo -e "${orange}6)${reset} PERCENTAGE: ${green}$PERCENTAGE${reset}"
+        echo -e "${orange}7)${reset} PORT_MONITORING: ${green}$PORT_MONITORING${reset}"
+        echo -e "${orange}8)${reset} SYS_MONITORING: ${green}$SYS_MONITORING${reset}"
+        echo -e "${orange}9)${reset} CLOUDFLARE_WORKER_URL: ${green}$CLOUDFLARE_WORKER_URL${reset}"
+        echo -e "${orange}10)${reset} HTTP_PROXY: ${green}$HTTP_PROXY${reset}"
+        echo -e "${orange}0)${reset} Save and Exit\n"
+
+        input "${pink}Enter number to edit or 0 to save & exit:${reset}" choice
+
+        case $choice in
+            1)
+                while true; do
+                    input "${orange}Enter BOT_TOKEN:${reset} " new_val
+                    if [[ -z "$new_val" ]]; then
+                        error "Bot token cannot be empty!"
+                    elif [[ ! "$new_val" =~ ^[0-9]+:[a-zA-Z0-9_-]{30,50}$ ]]; then
+                        error "Invalid bot token format!"
+                    else
+                        BOT_TOKEN="$new_val"
+                        success "BOT_TOKEN updated."
+                        break
+                    fi
+                done
+                ;;
+            2)
+                while true; do
+                    input "${orange}Enter CHAT_ID:${reset} " new_val
+                    if [[ -z "$new_val" ]]; then
+                        error "Chat ID cannot be empty!"
+                    elif [[ ! "$new_val" =~ ^-?[0-9]+$ ]]; then
+                        error "Invalid chat ID format!"
+                    else
+                        CHAT_ID="$new_val"
+                        success "CHAT_ID updated."
+                        break
+                    fi
+                done
+                ;;
+            3)
+                while true; do
+                    input "${orange}Enter SERVER_NAME:${reset} " new_val
+                    if [ ${#new_val} -lt 3 ]; then
+                        error "Name must be at least 3 characters long."
+                    else
+                        SERVER_NAME="$new_val"
+                        success "SERVER_NAME updated."
+                        break
+                    fi
+                done
+                ;;
+            4)
+                while true; do
+                    input "${orange}Enter DELAY (1-1440):${reset} " new_val
+                    if ! [[ "$new_val" =~ ^[0-9]+$ ]]; then
+                        error "Please enter a valid number."
+                    elif [ "$new_val" -lt 1 ] || [ "$new_val" -gt 1440 ]; then
+                        error "Number must be between 1 and 1440."
+                    else
+                        DELAY="$new_val"
+                        success "DELAY updated."
+                        break
+                    fi
+                done
+                ;;
+            5)
+                while true; do
+                    input "${orange}Enter LOG_STATUS (1=Log, 2=Warn, 3=Log-Warn):${reset} " new_val
+                    if ! [[ "$new_val" =~ ^[1-3]$ ]]; then
+                        error "Please enter a valid number (1-3)."
+                    else
+                        LOG_STATUS="$new_val"
+                        success "LOG_STATUS updated."
+                        if [ "$LOG_STATUS" -ne 1 ]; then
+                            while true; do
+                                input "${orange}Enter PERCENTAGE (-100 to 0):${reset} " perc_val
+                                if ! [[ "$perc_val" =~ ^-?[0-9]+$ ]] || (( perc_val < -100 || perc_val > 0 )); then
+                                    error "Please enter a valid number between -100 and 0."
+                                else
+                                    PERCENTAGE="$perc_val"
+                                    success "PERCENTAGE updated."
+                                    break
+                                fi
+                            done
+                        else
+                            PERCENTAGE=0
+                        fi
+                        break
+                    fi
+                done
+                ;;
+            6)
+                while true; do
+                    input "${orange}Enter PERCENTAGE (-100 to 0):${reset} " new_val
+                    if ! [[ "$new_val" =~ ^-?[0-9]+$ ]] || (( new_val < -100 || new_val > 0 )); then
+                        error "Please enter a valid number between -100 and 0."
+                    else
+                        PERCENTAGE="$new_val"
+                        success "PERCENTAGE updated."
+                        break
+                    fi
+                done
+                ;;
+            7)
+                while true; do
+                    input "${orange}Enable PORT_MONITORING? (0=No, 1=Yes):${reset} " new_val
+                    if ! [[ "$new_val" =~ ^[01]$ ]]; then
+                        error "Please enter 0 or 1."
+                    else
+                        PORT_MONITORING="$new_val"
+                        success "PORT_MONITORING updated."
+                        break
+                    fi
+                done
+                ;;
+            8)
+                while true; do
+                    input "${orange}Enable SYS_MONITORING? (0=No, 1=Yes):${reset} " new_val
+                    if ! [[ "$new_val" =~ ^[01]$ ]]; then
+                        error "Please enter 0 or 1."
+                    else
+                        SYS_MONITORING="$new_val"
+                        success "SYS_MONITORING updated."
+                        break
+                    fi
+                done
+                ;;
+            9)
+                while true; do
+                    input "${orange}Enter CLOUDFLARE_WORKER_URL (empty to clear):${reset} " new_val
+                    if [[ -z "$new_val" ]]; then
+                        CLOUDFLARE_WORKER_URL=""
+                        success "CLOUDFLARE_WORKER_URL cleared."
+                        break
+                    elif [[ "$new_val" =~ ^https?://.+ ]]; then
+                        CLOUDFLARE_WORKER_URL="$new_val"
+                        success "CLOUDFLARE_WORKER_URL updated."
+                        break
+                    else
+                        error "Invalid URL format."
+                    fi
+                done
+                ;;
+            10)
+                while true; do
+                    input "${orange}Enter HTTP_PROXY (empty to clear):${reset} " new_val
+                    if [[ -z "$new_val" ]]; then
+                        HTTP_PROXY=""
+                        success "HTTP_PROXY cleared."
+                        break
+                    elif [[ "$new_val" =~ ^http://([a-zA-Z0-9]+:[a-zA-Z0-9]+@)?([0-9]{1,3}\.){3}[0-9]{1,3}:[0-9]+/?$ ]]; then
+                        HTTP_PROXY="$new_val"
+                        success "HTTP_PROXY updated."
+                        break
+                    else
+                        error "Invalid HTTP_PROXY format."
+                        error "Examples: http://user:pass@ip:port or http://ip:port"
+                    fi
+                done
+                ;;
+            0)
+                cat <<EOF > $INSTALL_DIR/config.py
+BOT_TOKEN="${BOT_TOKEN}"
+CHAT_ID="${CHAT_ID}"
+SERVER_NAME="${SERVER_NAME}"
+DELAY=${DELAY}
+LOG_STATUS=${LOG_STATUS}
+PERCENTAGE=${PERCENTAGE}
+PORT_MONITORING=${PORT_MONITORING}
+SYS_MONITORING=${SYS_MONITORING}
+CLOUDFLARE_WORKER_URL="${CLOUDFLARE_WORKER_URL}"
+HTTP_PROXY="${HTTP_PROXY}"
+EOF
+                success "Config saved. Restarting bot..."
+                sudo systemctl restart $SERVICE_NAME
+                success "Bot restarted successfully."
+                confirm
+                break
+                ;;
+            *)
+                error "Invalid option."
+                ;;
+        esac
+    done
+}
+
+
+
 setup_bot() {
     cleanup_old_installation
-    install_dependencies
     setup_python_environment
     download_script_and_create_config
     setup_systemd_service
     success "Telegram Monitoring Bot is now installed and running for ${name}"
-    log "DELAY=${delay} min, LOG_STATUS=${log_status}, PERCENTAGE=${percentage}"
+    log "DELAY=${delay} min, LOG_STATUS=${log_status}, PERCENTAGE=${percentage}, PORT_MONITORING=${PORT_MONITORING}, SYS_MONITORING=${SYS_MONITORING}, CLOUDFLARE_WORKER_URL=${CLOUDFLARE_WORKER_URL}"
     confirm
 }
+
 restart_bot() {
     log "Restarting Monitoring Bot..."
     sudo systemctl daemon-reload
@@ -77,6 +297,7 @@ restart_bot() {
     success "Bot restarted successfully"
     confirm
 }
+
 start_uninstall_bot() {
     log "Start uninstall bot..."
     sudo systemctl stop $SERVICE_NAME
@@ -87,6 +308,7 @@ start_uninstall_bot() {
     log "Bot is removed"
     confirm
 }
+
 show_logs() {
     log "Showing Bot logs (press Ctrl+C to exit):\n"
     sleep 1
@@ -94,15 +316,16 @@ show_logs() {
     log "Log display ended."
     confirm
 }
+
 status_bot() {
     log "Checking Monitoring Bot status..."
     sudo systemctl status $SERVICE_NAME
     confirm
 }
+
 check_needs() {
     log "Checking and updating system..."
     check_and_update
-    install_dependencies
 }
 
 get_bot_info() {
@@ -110,7 +333,7 @@ get_bot_info() {
         input "Enter the bot token: " bot_token
         if [[ -z "$bot_token" ]]; then
             error "Bot token cannot be empty!"
-        elif [[ ! "$bot_token" =~ ^[0-9]+:[a-zA-Z0-9_-]{35}$ ]]; then
+        elif [[ ! "$bot_token" =~ ^[0-9]+:[a-zA-Z0-9_-]{30,50}$ ]]; then
             error "Invalid bot token format!"
         else
             break
@@ -124,7 +347,7 @@ get_bot_info() {
             error "Invalid chat ID format!"
         else
             log "Checking Telegram bot..."
-            text=$'Monitoring Bot is active! ✅\nDeveloper: @XuVixC'
+            text=$'✅ *Monitoring Bot test msg!*\n\n📡 Channel: [@XuVixC](https://t.me/XuVixC)\n📦 Source: [GitHub](https://github.com/XuVix/Monitoring_Bot)'
             response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "https://api.telegram.org/bot$bot_token/sendMessage" -d chat_id="$chat_id" -d text="$text")
             if [[ "$response" -ne 200 ]]; then
                 error "Invalid bot token or chat ID, or Telegram API error!"
@@ -136,6 +359,7 @@ get_bot_info() {
     done
     sleep 1
 }
+
 get_server_name() {
     default_name="⚡️XuVix"
     while true; do
@@ -150,6 +374,7 @@ get_server_name() {
     done
     sleep 1
 }
+
 get_monotoring_delay() {
     default_delay=30
     while true; do
@@ -166,6 +391,7 @@ get_monotoring_delay() {
     done
     sleep 1
 }
+
 get_log_status() {
     default_log_status=3
     while true; do
@@ -185,6 +411,7 @@ get_log_status() {
     done
     sleep 1
 }
+
 get_percentage() {
     default_percentage=-50
     while true; do
@@ -199,6 +426,55 @@ get_percentage() {
     done
     sleep 1
 }
+
+get_port_monitoring() {
+    default_port_monitoring=1
+    while true; do
+        input "Enable PORT_MONITORING? (0=No, 1=Yes) [default: 1]: " PORT_MONITORING
+        PORT_MONITORING=${PORT_MONITORING:-$default_port_monitoring}
+        if ! [[ "$PORT_MONITORING" =~ ^[01]$ ]]; then
+            error "Please enter 0 or 1."
+        else
+            success "PORT_MONITORING set to $PORT_MONITORING"
+            break
+        fi
+    done
+    sleep 1
+}
+
+get_sys_monitoring() {
+    default_sys_monitoring=1
+    while true; do
+        input "Enable SYS_MONITORING? (0=No, 1=Yes) [default: 1]: " SYS_MONITORING
+        SYS_MONITORING=${SYS_MONITORING:-$default_sys_monitoring}
+        if ! [[ "$SYS_MONITORING" =~ ^[01]$ ]]; then
+            error "Please enter 0 or 1."
+        else
+            success "SYS_MONITORING set to $SYS_MONITORING"
+            break
+        fi
+    done
+    sleep 1
+}
+
+get_cloudflare_worker_url() {
+    while true; do
+        input "Enter CLOUDFLARE_WORKER_URL (leave blank if not used): " CLOUDFLARE_WORKER_URL
+
+        if [ -z "$CLOUDFLARE_WORKER_URL" ]; then
+            CLOUDFLARE_WORKER_URL=""
+            break
+        fi
+
+        if [[ "$CLOUDFLARE_WORKER_URL" =~ ^https?://.+ ]]; then
+            break
+        else
+            error "Invalid URL format. Please enter a valid http or https URL or leave blank."
+        fi
+    done
+    sleep 1
+}
+
 get_proxy() {
     while true; do
         input "Enter HTTP_PROXY (leave blank if not required): " HTTP_PROXY
@@ -219,6 +495,7 @@ get_proxy() {
     done
     sleep 1
 }
+
 cleanup_old_installation() {
     if systemctl is-active --quiet "$SERVICE_NAME"; then
         echo "Stopping the existing service..."
@@ -235,46 +512,73 @@ cleanup_old_installation() {
     fi
     sudo systemctl daemon-reload
 }
+
 check_and_update() {
     log "Checking root..."
     if [ "$EUID" -ne 0 ]; then
         error "You should run this script with root! Use sudo -i to change user to root."
         exit 1
     fi
-    if command -v apt-get &> /dev/null; then
-        PKG_MANAGER="apt-get"
-        PKG_UPDATE="$PKG_MANAGER update -y"
-        PKG_INSTALL="$PKG_MANAGER install -y"
-    elif command -v dnf &> /dev/null; then
-        PKG_MANAGER="dnf"
-        PKG_UPDATE="$PKG_MANAGER check-update"
-        PKG_INSTALL="$PKG_MANAGER install -y"
-    elif command -v yum &> /dev/null; then
-        PKG_MANAGER="yum"
-        PKG_UPDATE="$PKG_MANAGER check-update"
-        PKG_INSTALL="$PKG_MANAGER install -y"
+
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        DISTRO=$ID
     else
-        error "No supported package manager found. Please install packages manually."
+        error "Cannot detect Linux distribution. Please install dependencies manually."
         exit 1
     fi
-    log "Checking for system updates..."
+
+    log "Detected Linux distro: $DISTRO"
+
+    case "$DISTRO" in
+        ubuntu|debian|linuxmint)
+            PKG_MANAGER="apt-get"
+            PKG_UPDATE="$PKG_MANAGER update -y"
+            PKG_INSTALL="$PKG_MANAGER install -y python3 python3-venv python3-pip curl"
+            ;;
+        fedora)
+            PKG_MANAGER="dnf"
+            PKG_UPDATE="$PKG_MANAGER check-update -y"
+            PKG_INSTALL="$PKG_MANAGER install -y python3 python3-venv python3-pip curl"
+            ;;
+        centos|rhel|rocky|almalinux)
+            PKG_MANAGER="yum"
+            PKG_UPDATE="$PKG_MANAGER check-update"
+            PKG_INSTALL="$PKG_MANAGER install -y python3 python3-venv python3-pip curl"
+            ;;
+        alpine)
+            log "Alpine Linux detected. Installing packages with apk."
+            apk update
+            apk add python3 py3-venv py3-pip curl
+            return
+            ;;
+        *)
+            error "Unsupported Linux distribution: $DISTRO. Please install dependencies manually."
+            exit 1
+            ;;
+    esac
+
+    log "Updating package lists..."
     $PKG_UPDATE || true
+
+    log "Installing dependencies..."
+    $PKG_INSTALL
 }
-install_dependencies() {
-    log "Updating package lists and installing dependencies..."
-    sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-    sudo DEBIAN_FRONTEND=noninteractive apt-get install -y python3 python3-venv python3-pip curl
-}
+
 setup_python_environment() {
     log "Creating installation directory and setting up virtual environment..."
     sudo mkdir -p $INSTALL_DIR
     python3 -m venv $INSTALL_DIR/venv
     source $INSTALL_DIR/venv/bin/activate
-    log "Upgrading pip and installing Python packages..."
+    log "Upgrading pip..."
     pip install --upgrade pip
     pip uninstall -y python-telegram-bot || true
-    pip install "python-telegram-bot==13.7" "psutil>=5.9.0" "schedule>=1.1.0" "urllib3==1.26.15"
+    log "Downloading requirements.txt..."
+    curl -sSLo $INSTALL_DIR/requirements.txt https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/requirements.txt
+    log "Installing Python packages from requirements.txt..."
+    pip install -r $INSTALL_DIR/requirements.txt
 }
+
 download_script_and_create_config() {
     log "Downloading the latest Python script..."
     curl -sSLo $INSTALL_DIR/main.py https://raw.githubusercontent.com/XuVix/Monitoring_Bot/main/main.py
@@ -286,9 +590,13 @@ SERVER_NAME = "${name}"
 DELAY = ${delay}
 LOG_STATUS = ${log_status}
 PERCENTAGE = ${percentage}
+PORT_MONITORING = ${PORT_MONITORING}
+SYS_MONITORING = ${SYS_MONITORING}
+CLOUDFLARE_WORKER_URL = "${CLOUDFLARE_WORKER_URL}"
 HTTP_PROXY = "${HTTP_PROXY}"
 EOF
 }
+
 setup_systemd_service() {
     log "Creating systemd service file..."
     cat <<EOF | sudo tee $SERVICE_PATH > /dev/null
@@ -308,11 +616,14 @@ EOF
     sudo systemctl enable $SERVICE_NAME
     sudo systemctl start $SERVICE_NAME
 }
+
 check_installation() {
     [ -d "$INSTALL_DIR" ] && [ -f "$SERVICE_PATH" ]
 }
+
 run() {
     clear
     menu
 }
+
 run
