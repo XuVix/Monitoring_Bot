@@ -2,3 +2,4 @@ psutil==5.9.0
 requests==2.25.1
 urllib3==1.26.15
 python-telegram-bot==13.7
+setuptools==69.5.1
